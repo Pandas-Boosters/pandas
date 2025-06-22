@@ -261,6 +261,13 @@ class PyArrowImpl(BaseImpl):
                 filters=filters,
                 **kwargs,
             )
+            #değişiklik yaptığım kısım burası-- gül
+            if dtype_backend is lib.no_default:
+                pa = self.api
+                for field in pa_table.schema:
+                    if pa.types.is_string(field.type) or pa.types.is_large_string(field.type):
+                        dtype_backend = "pyarrow"
+                        break
             with catch_warnings():
                 filterwarnings(
                     "ignore",
