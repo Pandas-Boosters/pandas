@@ -331,12 +331,20 @@ with cf.config_prefix("display"):
         validator=is_instance_factory((type(None), int)),
     )
     cf.register_option("max_categories", 8, pc_max_categories_doc, validator=is_int)
-
+    
+    def validate_min_4(x):
+        if not isinstance(x, int):
+            raise ValueError("max_colwidth must be an integer.")
+        if x < 4:
+            raise ValueError("max_colwidth must be at least 4.")
+        return True
+    
     cf.register_option(
         "max_colwidth",
         50,
         max_colwidth_doc,
-        validator=is_nonnegative_int,
+        #validator=is_nonnegative_int,
+        validator=validate_min_4,
     )
     if is_terminal():
         max_cols = 0  # automatically determine optimal number of columns

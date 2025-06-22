@@ -483,12 +483,18 @@ class Index(IndexOpsMixin, PandasObject):
         dtype=None,
         copy: bool = False,
         name=None,
+        names=None,#here
         tupleize_cols: bool = True,
     ) -> Self:
         from pandas.core.indexes.range import RangeIndex
 
         name = maybe_extract_name(name, data, cls)
-
+        
+        if names is not None and not isinstance(names, (list, tuple)):#
+            raise TypeError("Provided 'names' should be a list or a tuple.")#
+        elif names is not None:#
+            name = names[0]#
+        
         if dtype is not None:
             dtype = pandas_dtype(dtype)
 

@@ -43,6 +43,17 @@ from pandas.core.indexes.api import (
 
 
 class TestIndex:
+    def test_index_names(self):
+        # This is true
+        my_index = pd.Index([], name='name_of_index')
+        assert my_index.name == 'name_of_index'
+        assert my_index.names == ('name_of_index',)
+
+        # This is false (fails assertion)
+        second_index = pd.Index([], names=('a',))
+        assert second_index.name == 'a'
+        assert second_index.names == ('a',)
+        
     @pytest.fixture
     def simple_index(self) -> Index:
         return Index(list("abcde"))

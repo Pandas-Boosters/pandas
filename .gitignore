@@ -59,6 +59,7 @@ pandas/py.typed
 
 # pyenv
 .python-version
+venv
 
 # tox testing tool
 .tox
