@@ -1525,6 +1525,10 @@ class DataFrame(NDFrame, OpsMixin):
                 s._mgr.add_references(self._mgr)
             yield k, s
 
+    def iterdicts(self, index=True):
+        for x in self.itertuples(index):
+            yield x._asdict()
+
     def itertuples(
         self, index: bool = True, name: str | None = "Pandas"
     ) -> Iterable[tuple[Any, ...]]:

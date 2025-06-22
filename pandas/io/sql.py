@@ -746,6 +746,7 @@ def to_sql(
     dtype: DtypeArg | None = None,
     method: Literal["multi"] | Callable | None = None,
     engine: str = "auto",
+    hints: dict | None = None,
     **engine_kwargs,
 ) -> int | None:
     """
@@ -848,6 +849,7 @@ def to_sql(
             dtype=dtype,
             method=method,
             engine=engine,
+            hints=hints,
             **engine_kwargs,
         )
 
@@ -1498,6 +1500,7 @@ class PandasSQL(PandasObject, ABC):
         dtype: DtypeArg | None = None,
         method: Literal["multi"] | Callable | None = None,
         engine: str = "auto",
+        hints: dict | None = None,
         **engine_kwargs,
     ) -> int | None:
         pass
@@ -1969,6 +1972,7 @@ class SQLDatabase(PandasSQL):
         dtype: DtypeArg | None = None,
         method: Literal["multi"] | Callable | None = None,
         engine: str = "auto",
+        hints: dict | None = None,
         **engine_kwargs,
     ) -> int | None:
         """
@@ -2031,6 +2035,9 @@ class SQLDatabase(PandasSQL):
             schema=schema,
             dtype=dtype,
         )
+
+        if hints is not None:
+            engine_kwargs["hints"] = hints
 
         total_inserted = sql_engine.insert_records(
             table=table,
@@ -2333,6 +2340,7 @@ class ADBCDatabase(PandasSQL):
         dtype: DtypeArg | None = None,
         method: Literal["multi"] | Callable | None = None,
         engine: str = "auto",
+        hints: dict | None = None,
         **engine_kwargs,
     ) -> int | None:
         """
@@ -2412,9 +2420,18 @@ class ADBCDatabase(PandasSQL):
 
         with self.con.cursor() as cur:
             try:
-                total_inserted = cur.adbc_ingest(
-                    table_name=name, data=tbl, mode=mode, db_schema_name=schema
-                )
+                ingest_args = dict(
+                  table_name=name,
+                  data=tbl,
+                  mode=mode,
+                  db_schema_name=schema,
+            )
+
+                if hints is not None:
+                  ingest_args["hints"] = hints
+
+                total_inserted = cur.adbc_ingest(**ingest_args)
+
             except Error as exc:
                 raise DatabaseError(
                     f"Failed to insert records on table={name} with {mode=}"
@@ -2502,10 +2519,11 @@ class SQLiteTable(SQLTable):
     Instead of a table variable just use the Create Table statement.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, hints=None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-
+        self.hints = hints  # store hints here
         self._register_date_adapters()
+
 
     def _register_date_adapters(self) -> None:
         # GH 8341
@@ -2810,6 +2828,7 @@ class SQLiteDatabase(PandasSQL):
         dtype: DtypeArg | None = None,
         method: Literal["multi"] | Callable | None = None,
         engine: str = "auto",
+        hints: dict | None = None,
         **engine_kwargs,
     ) -> int | None:
         """
@@ -2875,6 +2894,7 @@ class SQLiteDatabase(PandasSQL):
             if_exists=if_exists,
             index_label=index_label,
             dtype=dtype,
+            hints=hints,
         )
         table.create()
         return table.insert(chunksize, method)

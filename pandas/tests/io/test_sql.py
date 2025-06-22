@@ -1048,6 +1048,36 @@ def test_dataframe_to_sql_arrow_dtypes_missing(conn, request, nulls_fixture):
     conn = request.getfixturevalue(conn)
     df.to_sql(name="test_arrow", con=conn, if_exists="replace", index=False)
 
+def test_to_sql_with_hints():
+    df = pd.DataFrame({
+        "id": [1, 2, 3],
+        "value": ["a", "b", "c"]
+    })
+
+    conn = sqlite3.connect(":memory:")
+    db = SQLiteDatabase(conn)
+
+    captured = {}
+
+    original_to_sql = db.to_sql
+
+    def to_sql_with_capture(*args, **kwargs):
+        captured['hints'] = kwargs.get('hints', None)
+        return original_to_sql(*args, **kwargs)
+
+    db.to_sql = to_sql_with_capture
+
+    db.to_sql(df, name="test_table", if_exists="replace", hints={"ORACLE": ["APPEND", "PARALLEL"]})
+
+    assert captured['hints'] == {"ORACLE": ["APPEND", "PARALLEL"]}
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, value FROM test_table ORDER BY id")
+    rows = cursor.fetchall()
+
+    assert rows == [(1, "a"), (2, "b"), (3, "c")], f"got rows: {rows}"
+
+    conn.close()
 
 @pytest.mark.parametrize("conn", all_connectable)
 @pytest.mark.parametrize("method", [None, "multi"])

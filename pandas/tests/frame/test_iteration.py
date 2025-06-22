@@ -2,6 +2,7 @@ import datetime
 
 import numpy as np
 import pytest
+import pandas as pd
 
 from pandas.compat import (
     IS64,
@@ -84,6 +85,12 @@ class TestIteration:
         )
         _, result = next(df.iterrows())
         tm.assert_series_equal(result, expected)
+
+    def test_iterdicts_basic(self):
+        df = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
+        result = list(df.iterdicts())
+        expected = [row._asdict() for row in df.itertuples()]
+        assert result == expected
 
     def test_itertuples(self, float_frame):
         for i, tup in enumerate(float_frame.itertuples()):
