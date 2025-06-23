@@ -704,7 +704,7 @@ class TestParquetPyArrow(Base):
         df["bool_with_none"] = [True, None, True]
 
         check_round_trip(df, pa)
-
+#test_parquet_string_pyarrow_dtype ekleme yaptığım yer --gul
     def test_parquet_string_pyarrow_dtype(self, tmp_path):
         df = pd.DataFrame({"A": pd.array(['a', 'b'], dtype=pd.StringDtype("pyarrow"))})
         file = tmp_path / "test.parquet"
