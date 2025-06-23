@@ -2,7 +2,7 @@ from datetime import datetime
 import decimal
 from decimal import Decimal
 import re
-
+import os
 import numpy as np
 import pytest
 
@@ -30,6 +30,16 @@ import pandas.core.common as com
 
 pytestmark = pytest.mark.filterwarnings("ignore:Mean of empty slice:RuntimeWarning")
 
+def test_groupby_lambda_retains_index_name():
+    df = pd.DataFrame({
+        "A": [1, 2, 3, 1, 2, 3],
+        "B": [4, 5, 6, 4, 5, 6],
+        "C": [7, 8, 9, 7, 8, 9]
+    }).set_index(['A', 'B'])
+
+    result = df.groupby(lambda x: x[0]).sum()
+    
+    assert result.index.name == "A", "Index name should be preserved as 'A' after lambda groupby"
 
 def test_repr():
     # GH18203

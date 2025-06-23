@@ -182,6 +182,18 @@ def expecteds():
 
 
 class TestCommon:
+    def test_custom_business_day_market_calendar():
+        import pandas_market_calendars as mcal
+        from pandas.tseries.offsets import CustomBusinessDay
+
+        nyse = mcal.get_calendar("NYSE")
+        cbd = CustomBusinessDay(calendar=nyse)
+
+        # 25 Aralık 2024 tatil, atlanmalı
+        dates = pd.date_range("2024-12-20", periods=10, freq=cbd)
+        assert pd.Timestamp("2024-12-25") not in dates
+        assert pd.Timestamp("2025-01-01") not in dates  # yılbaşı da tatil
+
     def test_immutable(self, offset_types):
         # GH#21341 check that __setattr__ raises
         offset = _create_offset(offset_types)

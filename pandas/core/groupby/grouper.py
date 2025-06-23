@@ -2,7 +2,6 @@
 Provide user facing operators for doing the split part of the
 split-apply-combine paradigm.
 """
-
 from __future__ import annotations
 
 from typing import (
@@ -557,8 +556,12 @@ class Grouping:
         elif isinstance(self.grouping_vector, ops.BaseGrouper):
             return self.grouping_vector.result_index.name
 
-        elif isinstance(self.grouping_vector, Index):
-            return self.grouping_vector.name
+        elif isinstance(self.grouping_vector, MultiIndex):
+            # lambda x: x[0] gibi positional gruplama varsa, ilk seviye adını tahmin et
+            if self._index.names and self._index.nlevels > 0:
+                return self._index.names[0]  # veya self.grouping_vector.names[0]
+            else:
+                return None
 
         # otherwise we have ndarray or ExtensionArray -> no name
         return None

@@ -6,7 +6,6 @@ The SeriesGroupBy and DataFrameGroupBy sub-class
 (defined in pandas.core.groupby.generic)
 expose these user-facing objects to provide specific functionality.
 """
-
 from __future__ import annotations
 
 from collections.abc import (
@@ -1283,10 +1282,21 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         else:
             index = self._grouper.result_index
             if qs is not None:
-                # We get here with len(qs) != 1 and not self.as_index
-                #  in test_pass_args_kwargs
                 index = _insert_quantile_level(index, qs)
             result.index = index
+
+            #  Ek: Index ismi None ise ve gruplama lambda ile yapıldıysa isim tahmini
+            if result.index.name is None:
+                # Eğer gruplama bir MultiIndex'ten türetildiyse
+                if self._grouper.groupings:
+                    first_grouping = self._grouper.groupings[0]
+                    # MultiIndex kullanıldıysa ve isim varsa
+                    if hasattr(first_grouping, "_index") and isinstance(first_grouping._index, pd.MultiIndex):
+                        names = first_grouping._index.names
+                        ilevel = first_grouping._ilevel or 0
+                        if ilevel < len(names):
+                            result.index.name = names[ilevel]
+
 
         return result
 
