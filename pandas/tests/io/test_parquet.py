@@ -705,6 +705,13 @@ class TestParquetPyArrow(Base):
 
         check_round_trip(df, pa)
 
+    def test_parquet_string_pyarrow_dtype(self, tmp_path):
+        df = pd.DataFrame({"A": pd.array(['a', 'b'], dtype=pd.StringDtype("pyarrow"))})
+        file = tmp_path / "test.parquet"
+        df.to_parquet(file)
+        result = pd.read_parquet(file)
+        pd.testing.assert_frame_equal(df, result)
+
     def test_basic_subset_columns(self, pa, df_full):
         # GH18628
 
